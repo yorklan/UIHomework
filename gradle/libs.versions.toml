@@ -12,6 +12,7 @@ composeBom = "2024.04.01"
 room = "2.6.1"
 retrofit = "2.9.0"
 appcompat = "1.7.0"
+koin = "3.4.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +37,10 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 ## Retrofit
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+# Koin
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-android-compat = { group = "io.insert-koin", name = "koin-android-compat", version.ref = "koin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -47,3 +52,4 @@ google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 [bundles]
 room = ["androidx-room-runtime", "androidx-room-ktx"]
 retrofit = ["retrofit", "retrofit-gson"]
+koin = ["koin-core", "koin-android", "koin-android-compat"]
