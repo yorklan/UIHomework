@@ -31,6 +31,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -39,6 +42,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.bundles.retrofit)
     implementation(libs.bundles.room)
+    implementation(libs.okhttp.logging.interceptor)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     implementation(libs.bundles.koin)
