@@ -1,15 +1,19 @@
 package com.york.data
 
+import androidx.annotation.VisibleForTesting
 import androidx.room.Transaction
 import com.york.data.local.PokemonDao
 import com.york.data.local.entity.Pokemon
+import com.york.data.local.entity.Pokemon.Companion.UNKNOWN_POKEMON_ID
 import com.york.data.local.entity.PokemonType
 import com.york.data.local.entity.PokemonTypeCrossRef
+import com.york.data.local.relation.TypeWithPokemons
 import com.york.data.remote.PokemonApi
 import com.york.data.remote.model.ImageAndTypeResponse
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.supervisorScope
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -18,12 +22,15 @@ class PokemonRepository internal constructor(
     private val pokemonDao: PokemonDao
 ) {
 
+    val typeWithPokemons: Flow<List<TypeWithPokemons>>
+        = pokemonDao.queryTypeWithPokemons()
+
     suspend fun syncData(): Result<Unit> {
         return safeApiCall {
             val pokemonList = pokemonApi.getPokemon(151).results.map {
                 val id = it.url.split("/").let { arr ->
-                    arr[arr.size - 2]
-                }.toInt()
+                    arr.getOrNull(arr.size - 2)
+                }?.toInt() ?: UNKNOWN_POKEMON_ID
                 Pokemon(
                     pokemonName = it.name,
                     pokemonId = id,
@@ -37,7 +44,8 @@ class PokemonRepository internal constructor(
         }
     }
 
-    private suspend fun handlePokemonList(pokemonList: List<Pokemon>) = coroutineScope {
+    @VisibleForTesting
+    suspend fun handlePokemonList(pokemonList: List<Pokemon>) = supervisorScope {
         pokemonList.map { pokemon ->
             async {
                 val imageAndType = pokemonApi.getImageAndType(pokemon.pokemonName)

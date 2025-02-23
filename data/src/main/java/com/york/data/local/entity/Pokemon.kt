@@ -10,4 +10,8 @@ data class Pokemon(
     val image: String?,
     val description: String?,
     val evolvesFrom: String?
-)
+) {
+    companion object {
+        const val UNKNOWN_POKEMON_ID = -1
+    }
+}

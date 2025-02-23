@@ -45,7 +45,7 @@ dependencies {
     implementation(libs.bundles.room)
     implementation(libs.okhttp.logging.interceptor)
     ksp(libs.androidx.room.compiler)
-    testImplementation(libs.junit)
+    testImplementation(libs.bundles.test.unit)
     implementation(libs.bundles.koin)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

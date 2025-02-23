@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 internal interface PokemonDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPokemonList(pokemonList: List<Pokemon>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
