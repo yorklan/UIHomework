@@ -1,8 +1,15 @@
 package com.york.data
 
+import androidx.room.Transaction
 import com.york.data.local.PokemonDao
 import com.york.data.local.entity.Pokemon
+import com.york.data.local.entity.PokemonType
+import com.york.data.local.entity.PokemonTypeCrossRef
 import com.york.data.remote.PokemonApi
+import com.york.data.remote.model.ImageAndTypeResponse
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -26,7 +33,49 @@ class PokemonRepository internal constructor(
                 )
             }
             pokemonDao.insertPokemonList(pokemonList)
+            handlePokemonList(pokemonList)
         }
+    }
+
+    private suspend fun handlePokemonList(pokemonList: List<Pokemon>) = coroutineScope {
+        pokemonList.map { pokemon ->
+            async {
+                val imageAndType = pokemonApi.getImageAndType(pokemon.pokemonName)
+                updatePokemonImg(
+                    originPokemon = pokemon,
+                    img = imageAndType.img
+                )
+                storeTypeAndCrossRef(
+                    pokemonName = pokemon.pokemonName,
+                    imageAndType = imageAndType
+                )
+            }
+        }.awaitAll()
+    }
+
+    private suspend fun updatePokemonImg(
+        originPokemon: Pokemon,
+        img: String
+    ) {
+        val pokemonWithImg = originPokemon.copy(image = img)
+        pokemonDao.updatePokemon(pokemonWithImg)
+    }
+
+    @Transaction
+    private suspend fun storeTypeAndCrossRef(
+        pokemonName: String,
+        imageAndType: ImageAndTypeResponse
+    ) {
+        val (typeList, crossRefList) = imageAndType.typeList.map { typeName ->
+            PokemonType(
+                typeName = typeName
+            ) to PokemonTypeCrossRef(
+                typeName = typeName,
+                pokemonName = pokemonName
+            )
+        }.unzip()
+        pokemonDao.insertPokemonTypeList(typeList)
+        pokemonDao.insertPokemonTypeCrossRefList(crossRefList)
     }
 
     private suspend fun <T> safeApiCall(apiCall: suspend () -> T): Result<T> {
@@ -44,3 +93,9 @@ class PokemonRepository internal constructor(
         }
     }
 }
+
+private val ImageAndTypeResponse.img: String
+    get() = sprites.other.officialArtwork.frontDefault
+
+private val ImageAndTypeResponse.typeList: List<String>
+    get() = types.map { it.type.name }
