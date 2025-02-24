@@ -3,10 +3,12 @@ package com.york.data
 import androidx.annotation.VisibleForTesting
 import androidx.room.Transaction
 import com.york.data.local.PokemonDao
+import com.york.data.local.entity.Captured
 import com.york.data.local.entity.Pokemon
 import com.york.data.local.entity.Pokemon.Companion.UNKNOWN_POKEMON_ID
 import com.york.data.local.entity.PokemonType
 import com.york.data.local.entity.PokemonTypeCrossRef
+import com.york.data.local.relation.CapturedWithPokemon
 import com.york.data.local.relation.TypeWithPokemons
 import com.york.data.remote.PokemonApi
 import com.york.data.remote.model.ImageAndTypeResponse
@@ -24,6 +26,9 @@ class PokemonRepository internal constructor(
 
     val typeWithPokemons: Flow<List<TypeWithPokemons>>
         = pokemonDao.queryTypeWithPokemons()
+
+    val capturedWithPokemon: Flow<List<CapturedWithPokemon>>
+        = pokemonDao.queryCaptured()
 
     suspend fun syncData(): Result<Unit> {
         return safeApiCall {
@@ -59,6 +64,17 @@ class PokemonRepository internal constructor(
                 )
             }
         }.awaitAll()
+    }
+
+    suspend fun capture(pokemonName: String) {
+        pokemonDao.insertCaptured(Captured(
+            pokemonName = pokemonName,
+            capturedTime = System.currentTimeMillis()
+        ))
+    }
+
+    suspend fun release(captured: Captured) {
+        pokemonDao.deleteCaptured(captured)
     }
 
     private suspend fun updatePokemonImg(

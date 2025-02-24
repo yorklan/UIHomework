@@ -4,12 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.york.data.local.entity.Captured
 import com.york.data.local.entity.Pokemon
 import com.york.data.local.entity.PokemonType
 import com.york.data.local.entity.PokemonTypeCrossRef
 
 @Database(
-    entities = [Pokemon::class, PokemonType::class, PokemonTypeCrossRef::class],
+    entities = [Pokemon::class, PokemonType::class, PokemonTypeCrossRef::class, Captured::class],
     version = 1,
     exportSchema = true
 )
