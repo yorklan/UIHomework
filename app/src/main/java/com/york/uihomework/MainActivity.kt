@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,12 +31,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.york.data.local.entity.Pokemon
 import com.york.uihomework.ui.theme.UIHomeworkTheme
 import com.york.uihomework.util.debounceClickable
 import com.york.uihomework.util.spacing
@@ -68,34 +71,71 @@ fun UiPokemonHomepage(
     val typeWithPokemonList by viewModel.typeWithPokemonsFlow.collectAsStateWithLifecycle(
         initialValue = emptyList()
     )
+    val capturedWithPokemon by viewModel.capturedWithPokemonFlow.collectAsStateWithLifecycle(
+        initialValue = emptyList()
+    )
     LazyColumn(modifier = modifier) {
         item {
-            // TODO Capture Feature
-            Text(
-                text = "TODO Captured List"
+            HomeSection(
+                typeName = stringResource(R.string.title_my_pocket),
+                count = capturedWithPokemon.size,
+                pokemonList = capturedWithPokemon.map { it.pokemon },
+                onBtnClick = { _, index ->
+                    capturedWithPokemon.getOrNull(index)?.let {
+                        viewModel.releasePokemon(it.captured)
+                    }
+                },
+                onItemClick = {
+                    // TODO Detail Feature
+                }
             )
         }
         items(typeWithPokemonList) { typeWithPokemons ->
-            Column {
-                TypeHeader(
-                    typeName = typeWithPokemons.type.typeName,
-                    count = typeWithPokemons.pokemons.size,
-                    modifier = Modifier.padding(MaterialTheme.spacing.medium)
-                )
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-                    contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.medium),
-                ) {
-                    items(typeWithPokemons.pokemons) {
-                        PokemonItem(
-                            img = it.image,
-                            name = it.pokemonName,
-                            modifier = Modifier.width(getImgSize())
-                        ) {
-                            // TODO Capture Feature
-                        }
-                    }
+            HomeSection(
+                typeName = typeWithPokemons.type.typeName,
+                count = typeWithPokemons.pokemons.size,
+                pokemonList = typeWithPokemons.pokemons,
+                onBtnClick = { pokemon, _ ->
+                    viewModel.capturePokemon(pokemon.pokemonName)
+                },
+                onItemClick = {
+                    // TODO Detail Feature
                 }
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeSection(
+    typeName: String,
+    count: Int,
+    pokemonList: List<Pokemon>,
+    onBtnClick: (Pokemon, Int) -> Unit,
+    onItemClick: (Pokemon) -> Unit
+) {
+    Column {
+        TypeHeader(
+            typeName = typeName,
+            count = count,
+            modifier = Modifier.padding(MaterialTheme.spacing.medium)
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.medium),
+        ) {
+            itemsIndexed(pokemonList) { index, pokemon ->
+                PokemonItem(
+                    img = pokemon.image,
+                    name = pokemon.pokemonName,
+                    modifier = Modifier.width(getImgSize()),
+                    onBtnClick = {
+                        onBtnClick(pokemon, index)
+                    },
+                    onItemClick = {
+                        onItemClick(pokemon)
+                    }
+                )
             }
         }
     }
@@ -126,9 +166,12 @@ private fun PokemonItem(
     img: String?,
     name: String,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onBtnClick: () -> Unit,
+    onItemClick: () -> Unit
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier.debounceClickable {
+        onItemClick()
+    }) {
         BoxWithConstraints(modifier.wrapContentSize()) {
             val padding = maxWidth / 16
             AsyncImage(
@@ -137,7 +180,6 @@ private fun PokemonItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f),
-                placeholder = painterResource(R.drawable.poke_ball_bg),
                 error = painterResource(R.drawable.poke_ball_bg),
                 contentScale = ContentScale.Crop
             )
@@ -150,7 +192,7 @@ private fun PokemonItem(
                     .fillMaxSize(0.25f)
                     .align(Alignment.TopEnd)
                     .debounceClickable {
-                        onClick()
+                        onBtnClick()
                     }
             )
         }
@@ -193,6 +235,7 @@ private fun PokemonItemPreview() {
     PokemonItem(
         img = "",
         name = "Pikachu",
-        modifier = Modifier.width(getImgSize())
-    ) {}
+        modifier = Modifier.width(getImgSize()),
+        {},{}
+    )
 }

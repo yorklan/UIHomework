@@ -48,6 +48,7 @@ koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = 
 koin-android-compat = { group = "io.insert-koin", name = "koin-android-compat", version.ref = "koin" }
 # Test
 mockk-android = { group = "io.mockk", name = "mockk-android",  version = "1.13.13" }
+coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.10.0"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -61,4 +62,4 @@ gitlab-arturbosch-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "
 room = ["androidx-room-runtime", "androidx-room-ktx"]
 retrofit = ["retrofit", "retrofit-gson"]
 koin = ["koin-core", "koin-android", "koin-android-compat"]
-test-unit = ["junit", "mockk-android"]
+test-unit = ["junit", "mockk-android", "coroutines-test"]
