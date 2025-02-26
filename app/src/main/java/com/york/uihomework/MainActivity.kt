@@ -1,9 +1,11 @@
 package com.york.uihomework
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.times
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.york.data.local.entity.Pokemon
+import com.york.uihomework.detail.DetailActivity
 import com.york.uihomework.ui.theme.UIHomeworkTheme
 import com.york.uihomework.util.debounceClickable
 import com.york.uihomework.util.spacing
@@ -48,6 +51,10 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModel()
 
+    companion object {
+        const val OUTPUT_EXTRA_POKEMON = "OUTPUT_EXTRA_POKEMON"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -56,7 +63,14 @@ class MainActivity : ComponentActivity() {
                     UiPokemonHomepage(
                         viewModel = viewModel,
                         modifier = Modifier.padding(innerPadding)
-                    )
+                    ) { pokemon ->
+                        Intent(this, DetailActivity::class.java)
+                            .apply {
+                                putExtra(OUTPUT_EXTRA_POKEMON, pokemon)
+                            }.let {
+                                startActivity(it)
+                            }
+                    }
                 }
             }
         }
@@ -66,7 +80,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun UiPokemonHomepage(
     viewModel: MainViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onItemClick: (Pokemon) -> Unit
 ) {
     val typeWithPokemonList by viewModel.typeWithPokemonsFlow.collectAsStateWithLifecycle(
         initialValue = emptyList()
@@ -85,9 +100,7 @@ fun UiPokemonHomepage(
                         viewModel.releasePokemon(it.captured)
                     }
                 },
-                onItemClick = {
-                    // TODO Detail Feature
-                }
+                onItemClick = onItemClick
             )
         }
         items(typeWithPokemonList) { typeWithPokemons ->
@@ -98,9 +111,7 @@ fun UiPokemonHomepage(
                 onBtnClick = { pokemon, _ ->
                     viewModel.capturePokemon(pokemon.pokemonName)
                 },
-                onItemClick = {
-                    // TODO Detail Feature
-                }
+                onItemClick = onItemClick
             )
         }
     }
@@ -191,7 +202,7 @@ private fun PokemonItem(
                     .padding(padding)
                     .fillMaxSize(0.25f)
                     .align(Alignment.TopEnd)
-                    .debounceClickable {
+                    .clickable {
                         onBtnClick()
                     }
             )

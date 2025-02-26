@@ -160,8 +160,8 @@ private val ImageAndTypeResponse.img: String
 private val ImageAndTypeResponse.typeList: List<String>
     get() = types.map { it.type.name }
 
-private val SpeciesAndDescriptionResponse.evolvesFrom: String
-    get() = evolvesFromSpecies.name
+private val SpeciesAndDescriptionResponse.evolvesFrom: String?
+    get() = evolvesFromSpecies?.name
 
 private val SpeciesAndDescriptionResponse.description: String
     get() = flavorTextEntries.firstOrNull { it.language.name == "en" }?.flavorText ?: ""

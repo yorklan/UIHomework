@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 internal data class SpeciesAndDescriptionResponse(
     @SerializedName("evolves_from_species")
-    val evolvesFromSpecies: EvolvesFromSpecies,
+    val evolvesFromSpecies: EvolvesFromSpecies?,
 
     @SerializedName("flavor_text_entries")
     val flavorTextEntries: List<FlavorTextEntries>
