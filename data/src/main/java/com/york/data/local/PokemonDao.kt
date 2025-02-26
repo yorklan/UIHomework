@@ -46,4 +46,11 @@ internal interface PokemonDao {
     @Transaction
     @Query("SELECT * FROM pokemon WHERE pokemonName = :pokemonName")
     suspend fun queryPokemonWithTypes(pokemonName: String): PokemonWithTypes
+
+    @Transaction
+    @Query("SELECT * FROM pokemon")
+    suspend fun queryPokemonWithTypesList(): List<PokemonWithTypes>
+
+    @Query("SELECT * FROM pokemon WHERE pokemonName = :pokemonName")
+    fun queryPokemon(pokemonName: String): Flow<Pokemon>
 }

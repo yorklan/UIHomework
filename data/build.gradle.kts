@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.gitlab.arturbosch.detekt)
+    id(libs.plugins.kotlin.parcelize.get().pluginId)
 }
 
 android {

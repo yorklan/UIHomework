@@ -51,6 +51,7 @@ internal class PokemonRepositoryTest {
     fun init() {
         MockKAnnotations.init(this, relaxUnitFun = true, relaxed = true)
         pokemonRepository = PokemonRepository(pokemonApi, pokemonDao)
+        coEvery { pokemonDao.queryPokemonWithTypesList() } returns emptyList()
     }
 
     @Test
@@ -100,12 +101,12 @@ internal class PokemonRepositoryTest {
     }
 
     @Test
-    fun handlePokemonList_onePokemon_callApiAndSaveToDb(): Unit = runBlocking {
+    fun syncPokemonImgAndTypes_onePokemon_callApiAndSaveToDb(): Unit = runBlocking {
         // GIVEN
         val mockImgAndTypeResponse = getMockImgAndTypeResponse(mockPokemon1Img, listOf(mockPokemon1Type))
         coEvery { pokemonApi.getImageAndType(mockPokemon1Name) } returns mockImgAndTypeResponse
         // WHEN
-        pokemonRepository.handlePokemonList(listOf(targetPokemon1))
+        pokemonRepository.syncPokemonImgAndTypes(listOf(targetPokemon1))
         // THEN
         val targetWithImg = targetPokemon1.copy(
             image = mockPokemon1Img
@@ -118,14 +119,14 @@ internal class PokemonRepositoryTest {
     }
 
     @Test
-    fun handlePokemonList_twoPokemons_callApiAndSaveToDb(): Unit = runBlocking {
+    fun syncPokemonImgAndTypes_twoPokemons_callApiAndSaveToDb(): Unit = runBlocking {
         // GIVEN
         val mockResponse1 = getMockImgAndTypeResponse(mockPokemon1Img, listOf(mockPokemon1Type))
         coEvery { pokemonApi.getImageAndType(mockPokemon1Name) } returns mockResponse1
         val mockResponse2 = getMockImgAndTypeResponse(mockPokemon2Img, listOf(mockPokemon2TypeA, mockPokemon2TypeB))
         coEvery { pokemonApi.getImageAndType(mockPokemon2Name) } returns mockResponse2
         // WHEN
-        pokemonRepository.handlePokemonList(listOf(targetPokemon1, targetPokemon2))
+        pokemonRepository.syncPokemonImgAndTypes(listOf(targetPokemon1, targetPokemon2))
         // THEN
         coVerify(exactly = 2) { pokemonDao.updatePokemon(any()) }
         coVerify(exactly = 2) { pokemonDao.insertPokemonTypeList(any()) }
@@ -140,9 +141,9 @@ internal class PokemonRepositoryTest {
     }
 
     @Test
-    fun handlePokemonList_zeroPokemon_noAction(): Unit = runBlocking  {
+    fun syncPokemonImgAndTypes_zeroPokemon_noAction(): Unit = runBlocking  {
         // WHEN
-        pokemonRepository.handlePokemonList(listOf())
+        pokemonRepository.syncPokemonImgAndTypes(listOf())
         // THEN
         coVerify(exactly = 0) { pokemonDao.updatePokemon(any()) }
         coVerify(exactly = 0) { pokemonDao.insertPokemonTypeList(any()) }
@@ -150,7 +151,7 @@ internal class PokemonRepositoryTest {
     }
 
     @Test
-    fun handlePokemonList_1networkException2Success_get1ExceptionAndSaveToDbTwice(): Unit = runBlocking  {
+    fun syncPokemonImgAndTypes_1NetworkException2Success_get1ExceptionAndSaveToDbTwice(): Unit = runBlocking  {
         // GIVEN
         val mockPokemon3Name = "venusaur"
         coEvery { pokemonApi.getImageAndType(mockPokemon3Name) } throws SocketTimeoutException("invalid message")
@@ -161,7 +162,7 @@ internal class PokemonRepositoryTest {
         // WHEN
         val targetPokemon3 = getMockPokemon(mockPokemon3Name, 3)
         try {
-            pokemonRepository.handlePokemonList(listOf(targetPokemon3, targetPokemon1, targetPokemon2))
+            pokemonRepository.syncPokemonImgAndTypes(listOf(targetPokemon3, targetPokemon1, targetPokemon2))
         } catch (e: Exception) {
             assertEquals(e.message, "invalid message")
         }
