@@ -6,19 +6,26 @@ import com.york.data.PokemonRepository
 import com.york.data.local.entity.Captured
 import com.york.data.local.relation.CapturedWithPokemon
 import com.york.data.local.relation.TypeWithPokemons
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val pokemonRepository: PokemonRepository
 ) : ViewModel() {
 
-    val capturedWithPokemonFlow: Flow<List<CapturedWithPokemon>>
-        = pokemonRepository.capturedWithPokemon.distinctUntilChanged()
+    val capturedWithPokemonFlow: StateFlow<List<CapturedWithPokemon>>
+        = pokemonRepository.capturedWithPokemon
+            .distinctUntilChanged()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val typeWithPokemonsFlow: Flow<List<TypeWithPokemons>>
-        = pokemonRepository.typeWithPokemons.distinctUntilChanged()
+
+    val typeWithPokemonsFlow: StateFlow<List<TypeWithPokemons>>
+        = pokemonRepository.typeWithPokemons
+            .distinctUntilChanged()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         syncData()

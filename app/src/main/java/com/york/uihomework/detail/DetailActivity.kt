@@ -1,5 +1,6 @@
 package com.york.uihomework.detail
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,12 +38,18 @@ import coil.compose.AsyncImage
 import com.york.data.local.entity.Pokemon
 import com.york.uihomework.R
 import com.york.uihomework.ui.theme.UIHomeworkTheme
+import com.york.uihomework.util.debounceClickable
 import com.york.uihomework.util.spacing
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class DetailActivity : ComponentActivity() {
 
     private val viewModel: DetailViewModel by viewModel()
+
+
+    companion object {
+        const val INPUT_EXTRA_POKEMON = "INPUT_EXTRA_POKEMON"
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,7 +99,14 @@ class DetailActivity : ComponentActivity() {
                         modifier = Modifier
                             .padding(innerPadding)
                             .fillMaxWidth()
-                    )
+                    ) { evolvesFromPokemon ->
+                        Intent(this, DetailActivity::class.java)
+                            .apply {
+                                putExtra(INPUT_EXTRA_POKEMON, evolvesFromPokemon)
+                            }.let {
+                                startActivity(it)
+                            }
+                    }
                 }
             }
         }
@@ -105,22 +118,22 @@ private fun DetailPage(
     pokemon: Pokemon,
     evolvesFrom: Pokemon?,
     pokemonTypes: List<String>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onEvolvesFromClick: (Pokemon) -> Unit
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight()
             .padding(horizontal = MaterialTheme.spacing.large)
     ) {
         AsyncImage(
             model = pokemon.image,
             contentDescription = "Pokemon Image of ${pokemon.pokemonName}",
             modifier = Modifier
+                .padding(top = MaterialTheme.spacing.medium)
                 .fillMaxWidth(0.4f)
                 .aspectRatio(1f)
-                .align(Alignment.CenterHorizontally)
-                .padding(top = MaterialTheme.spacing.medium),
+                .align(Alignment.CenterHorizontally),
             error = painterResource(R.drawable.poke_ball_bg),
             contentScale = ContentScale.Crop,
         )
@@ -150,7 +163,12 @@ private fun DetailPage(
             Row (
                 modifier = Modifier
                     .padding(top = MaterialTheme.spacing.large)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .debounceClickable(
+                        indication = null
+                    ) {
+                        onEvolvesFromClick(it)
+                    },
                 verticalAlignment = Alignment.Top
             ) {
                 Column(modifier = Modifier.weight(1f)){
@@ -209,5 +227,5 @@ private fun DetailPagePreview() {
             evolvesFrom = ""
         ),
         listOf("grass", "poison")
-    )
+    ) {}
 }

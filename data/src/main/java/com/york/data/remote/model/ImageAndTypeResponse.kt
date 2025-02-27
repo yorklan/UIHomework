@@ -6,6 +6,9 @@ internal data class ImageAndTypeResponse(
     @SerializedName("sprites")
     val sprites: Sprite,
 
+    @SerializedName("species")
+    val species: Species,
+
     @SerializedName("types")
     val types: List<Type>
 ) {
@@ -23,6 +26,14 @@ internal data class ImageAndTypeResponse(
             )
         }
     }
+
+    data class Species(
+        @SerializedName("name")
+        val name: String,
+
+        @SerializedName("url")
+        val url: String
+    )
 
     data class Type(
         @SerializedName("type")

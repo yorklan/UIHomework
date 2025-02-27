@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,10 +39,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.york.data.local.entity.Pokemon
 import com.york.uihomework.detail.DetailActivity
+import com.york.uihomework.detail.DetailActivity.Companion.INPUT_EXTRA_POKEMON
 import com.york.uihomework.ui.theme.UIHomeworkTheme
 import com.york.uihomework.util.debounceClickable
 import com.york.uihomework.util.spacing
@@ -50,10 +51,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModel()
-
-    companion object {
-        const val OUTPUT_EXTRA_POKEMON = "OUTPUT_EXTRA_POKEMON"
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +63,7 @@ class MainActivity : ComponentActivity() {
                     ) { pokemon ->
                         Intent(this, DetailActivity::class.java)
                             .apply {
-                                putExtra(OUTPUT_EXTRA_POKEMON, pokemon)
+                                putExtra(INPUT_EXTRA_POKEMON, pokemon)
                             }.let {
                                 startActivity(it)
                             }
@@ -83,12 +80,8 @@ fun UiPokemonHomepage(
     modifier: Modifier = Modifier,
     onItemClick: (Pokemon) -> Unit
 ) {
-    val typeWithPokemonList by viewModel.typeWithPokemonsFlow.collectAsStateWithLifecycle(
-        initialValue = emptyList()
-    )
-    val capturedWithPokemon by viewModel.capturedWithPokemonFlow.collectAsStateWithLifecycle(
-        initialValue = emptyList()
-    )
+    val typeWithPokemonList by viewModel.typeWithPokemonsFlow.collectAsState()
+    val capturedWithPokemon by viewModel.capturedWithPokemonFlow.collectAsState()
     LazyColumn(modifier = modifier) {
         item {
             HomeSection(
@@ -180,7 +173,9 @@ private fun PokemonItem(
     onBtnClick: () -> Unit,
     onItemClick: () -> Unit
 ) {
-    Column(modifier = modifier.debounceClickable {
+    Column(modifier = modifier.debounceClickable(
+        indication = null
+    ) {
         onItemClick()
     }) {
         BoxWithConstraints(modifier.wrapContentSize()) {

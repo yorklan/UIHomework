@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.york.data.PokemonRepository
 import com.york.data.local.entity.Pokemon
-import com.york.uihomework.MainActivity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +22,7 @@ class DetailViewModel(
 ) : ViewModel() {
 
     private val _inputPokemon: Pokemon =
-        savedStateHandle.get<Pokemon>(MainActivity.OUTPUT_EXTRA_POKEMON)!!
+        savedStateHandle.get<Pokemon>(DetailActivity.INPUT_EXTRA_POKEMON)!!
     val pokemonDetail: StateFlow<Pokemon> = pokemonRepository.getPokemon(_inputPokemon.pokemonName)
         .distinctUntilChanged()
         .map { it ?: _inputPokemon }

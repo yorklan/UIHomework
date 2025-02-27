@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.UIHomework" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.UIHomework" parent="android:Theme.Material.Light.NoActionBar" >
+        <item name="android:windowAnimationStyle">@style/WindowAnimationStyle</item>
+    </style>
+
+    <style name="WindowAnimationStyle">
+        <item name="android:windowEnterAnimation">@transition/fade</item>
+        <item name="android:windowExitAnimation">@transition/fade</item>
+    </style>
 </resources>

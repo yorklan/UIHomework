@@ -31,9 +31,7 @@ class PokemonRepository internal constructor(
     suspend fun syncData(): Result<Unit> {
         return safeApiCall {
             val pokemonList = pokemonApi.getPokemon(151).results.map {
-                val id = it.url.split("/").let { arr ->
-                    arr.getOrNull(arr.size - 2)
-                }?.toInt() ?: UNKNOWN_POKEMON_ID
+                val id = it.url.urlToId()
                 Pokemon(
                     pokemonName = it.name,
                     pokemonId = id,
@@ -63,7 +61,7 @@ class PokemonRepository internal constructor(
                 updatePokemonImg(
                     newPokemon = newPokemon,
                     savedPokemon = savedPokemonWithTypes?.pokemon,
-                    img = imageAndType.img
+                    imgAndType = imageAndType
                 )
                 storeTypeAndCrossRef(
                     pokemonName = newPokemon.pokemonName,
@@ -109,14 +107,19 @@ class PokemonRepository internal constructor(
     private suspend fun updatePokemonImg(
         savedPokemon: Pokemon?,
         newPokemon: Pokemon,
-        img: String
+        imgAndType: ImageAndTypeResponse
     ) {
         val pokemonWithImg = newPokemon.copy(
-            image = img,
+            image = imgAndType.img,
             description = savedPokemon?.description,
-            evolvesFrom = savedPokemon?.evolvesFrom
+            evolvesFrom = savedPokemon?.evolvesFrom,
+            pokemonId = if(newPokemon.pokemonId == UNKNOWN_POKEMON_ID) {
+                imgAndType.species.url.urlToId()
+            } else {
+                newPokemon.pokemonId
+            }
         )
-        if (savedPokemon != newPokemon) {
+        if (savedPokemon != pokemonWithImg) {
             pokemonDao.updatePokemon(pokemonWithImg)
         }
     }
@@ -150,6 +153,16 @@ class PokemonRepository internal constructor(
         } catch (e: Exception) {
             // Handle other exceptions
             Result.failure(Exception("An unexpected error occurred: ${e.message}"))
+        }
+    }
+
+    private fun String.urlToId(): Int {
+        return try {
+            this.split("/").let { arr ->
+                arr.getOrNull(arr.size - 2)
+            }?.toInt() ?: UNKNOWN_POKEMON_ID
+        } catch (ignored: Exception) {
+            UNKNOWN_POKEMON_ID
         }
     }
 }
