@@ -34,7 +34,7 @@ class DetailViewModel(
     init {
         viewModelScope.launch {
             pokemonDetail.collectLatest { detail ->
-                if (detail.description == null || detail.evolvesFrom == null) {
+                if (detail.description == null) {
                     pokemonRepository.syncDetail(detail)
                         .onSuccess {
                             println("success")
@@ -48,23 +48,29 @@ class DetailViewModel(
                         .catch {}
                         .collectLatest {
                             if (it == null) {
-                                pokemonRepository.syncPokemonImgAndTypes(
-                                    listOf(
-                                        Pokemon(
-                                            pokemonName = evolvesFromPokemon,
-                                            pokemonId = Pokemon.UNKNOWN_POKEMON_ID,
-                                            image = null,
-                                            description = null,
-                                            evolvesFrom = null
-                                        )
-                                    )
-                                )
+                                syncPokemonImgAndTypes(pokemonName = evolvesFromPokemon)
                             } else {
                                 _evolvesFrom.value = it
                             }
                         }
                 }
             }
+        }
+    }
+
+    private fun syncPokemonImgAndTypes(pokemonName: String) {
+        viewModelScope.launch {
+            pokemonRepository.syncPokemonImgAndTypes(
+                listOf(
+                    Pokemon(
+                        pokemonName = pokemonName,
+                        pokemonId = Pokemon.UNKNOWN_POKEMON_ID,
+                        image = null,
+                        description = null,
+                        evolvesFrom = null
+                    )
+                )
+            )
         }
     }
 
